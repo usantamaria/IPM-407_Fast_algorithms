@@ -1,0 +1,266 @@
+\documentclass[spanish]{article}
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[colorlinks]{hyperref}
+\usepackage{fourier}
+\usepackage{amssymb, amsmath, tikz}
+\usepackage{listings}
+\usepackage{float}
+\usepackage[top = 2.5cm, bottom = 2cm, left = 2cm, right = 2cm]{geometry}
+\usepackage{color}
+\usepackage{hyperref}
+
+\title{\begin{center}
+  \label{fig:ejemplo}
+ \end{center}
+  Tarea 1\\ Multigrid\\
+  \textit{}
+}
+
+\author{
+  Camilo Valenzuela Carrasco \\ \texttt{camilo.valenzuela@alumnos.usm.cl}
+  \\ 201173030-5
+}
+
+\lstset{
+  language=Python
+}
+
+\newcommand{\multlinecomment}[1]{\directlua{-- #1}}
+
+
+\begin{document}
+  \maketitle
+  %\section{Introducción}
+  
+    
+  %\section{Preguntas}
+  
+  
+  %PREGUNTAS
+  
+  \begin{enumerate}
+      %Pregunta 1
+      \item Considere el intervalo $0 \leq x \leq 1$ con nodos $x_j =\frac{j}{n}$, $0 \leq n \leq n$. Muestre que el k-ésimo modo de Fourier $w_{k,j} = sin\frac{jk\pi}{n}$ tiene una longitud de onda $l = \frac{2}{k}$ ¿Cuál modo tiene longitud de onda $l = 8h$? ¿y $l = \frac{1}{4}$?
+      
+      \textbf{Solución:} 
+      
+      Si tenemos $sin(\alpha x)$ la longitud de onda esta dada por $l = \frac{2\pi}{\alpha}$. Sabiendo esto podemos transformar 
+      
+      $$sin \left(\frac{jk\pi}{n}\right) = sin \left(\frac{j}{n} k\pi \right) = sin\left(x_j k\pi\right)$$
+      
+      Con $x = x_j$ y $\alpha = k\pi$ la longitud de onda queda:
+      
+      $$ l = \frac{2\pi}{k\pi} = \frac{2}{k} \ \ \ \square$$
+      
+      Reemplazando $l = 8h$ y $l = \frac{1}{4}$ obtenemos $k = \frac{1}{4h}$ y $k=8$ respectivamente.
+      
+      \item El número de condición de una matriz $\kappa(A) = ||A||_2 ||A^{-1}||_2$ da una idea de cuan bien el residual mide al error. En el siguiente ejercicio, use la propiedad que $||Ax||\leq ||A||||x||$
+      
+        %SUBPREGUNTAS 1)
+        \begin{enumerate}
+            \item Partiendo de la relación $Ae = r$ y $A^{-1}f = u$, demuestre que
+            
+            $$ \frac{||r||_2}{||f||_2} \leq \kappa(A) \frac{||e||_2}{||u||_2}$$
+            
+           Entregue una interpretación de esta desigualdad cuando $\kappa$ es alto.
+            
+            \textbf{Solución:}
+            
+            Comenzamos aplicando la norma 2 a ambas ecuaciones
+            $$Ae = r$$
+            $$||Ae||_2 = ||r||_2$$
+            
+            $$    A^{-1}f = u $$
+            $$    ||A^{-1}f||_2 = ||u||_2 $$
+            
+            Multimplicamos 
+            $$  ||Ae||_2 ||u||_2 = ||r||_2  ||u||_2 $$
+            $$ ||Ae||_2 ||A^{-1}f||_2 = ||r||_2  ||u||_2  $$
+            
+            Utilizando la desigualdad triangular obtenemos
+           $$ ||A||_2 ||A^{-1}||_2 ||e||_2 ||f||_2 \geq ||Ae||_2 ||A^{-1}f||_2 = ||r||_2  ||u||_2 $$ 
+           $$ ||A||_2 ||A^{-1}||_2 ||e||_2 ||f||_2 \geq ||r||_2  ||u||_2 $$
+           Reemplazando $\kappa(A)$ y ordenando la ecuación obtenemos
+           
+           $$ \kappa(A) ||e||_2 ||f||_2 \geq ||r||_2  ||u||_2 $$
+           $$  \frac{||r||_2}{||f||_2}\leq \kappa(A)\frac{ ||e||_2 }{ ||u||_2 } \ \ \  \square $$
+        
+           Mientras mayor sea el valor de $\kappa$ el residuo de la relajación puede ser mucho más grande, por lo que nuestra
+           solución aproximada por la relajación puede quedar muy lejos de la solución exacta.
+           
+           Lo que nos da una cota inferior para el error normalizado.
+        
+           \item Partiendo de las relaciones $Au = f$ y $A^{-1}r = e$ demuestre que 
+           $$\frac{||e||_2}{||u||_2} \leq \kappa(A) \frac{||r||_2}{||f||_2}$$
+           
+           Entregue una interpretación de esta desigualdad cuando $\kappa$ es alto.
+    
+        \textbf{Solución:}
+        
+        Utilizando la misma idea que en el ejercicio anterior:
+        
+        $$||Au||_2 = ||f||_2 \ \ \  , \ \ \ ||A^{-1}r||_2 = ||e||_2 $$
+        
+        Multiplicando $||e||_2$ a la primera ecuación
+        
+        $$||Au||_2 ||e||_2 = ||f||_2 ||e||_2 $$
+        $$ ||Au||_2 ||A^{-1}r||_2 = ||f||_2 ||e||_2 $$
+        
+        Utilizando la desigualdad triangular
+        
+        $$ ||A||_2 ||A^{-1}||_2 ||u||_2  ||r||_2 \geq ||Au||_2 ||A^{-1}r||_2 = ||f||_2 ||e||_2 $$
+        $$ \kappa(A) ||u||_2  ||r||_2 \geq ||f||_2 ||e||_2 $$
+        
+        Despejando obtenemos la desigualdad buscada
+         $$\frac{||e||_2}{||u||_2} \leq \kappa(A) \frac{||r||_2}{||f||_2}  \ \ \  \square$$
+         
+         Lo mismo que el caso anterior pero ahora tenemos una cota superior del error normalizado.
+        
+        \item Combine estos resultados para llegar a
+        
+        
+        $$ \frac{1}{\kappa(A)} \frac{||r||_2}{||f||_2} \leq \frac{||e||_2}{||u||_2} \leq \kappa(A) \frac{||r||_2}{||f||_2}$$
+        
+        
+        \textbf{Solución:}
+ 
+        Despejamos $\frac{||e||_2}{||u||_2}$ en ambas ecuaciones
+        
+        $$ \frac{1}{\kappa(A)} \frac{||r||_2}{||f||_2} \leq \frac{||e||_2}{||u||_2} \ \ \ \ , \ \ \ \  \frac{||e||_2}{||u||_2} \leq \kappa(A) \frac{||r||_2}{||f||_2}$$
+        
+        Al combinar ambas desigualdades se obtienen las dos cotas para el error normalizado.
+        
+        $$ \frac{1}{\kappa(A)} \frac{||r||_2}{||f||_2} \leq \frac{||e||_2}{||u||_2} \leq \kappa(A) \frac{||r||_2}{||f||_2}$$
+        
+        Mientra mayor es el valor de $\kappa$, mayor va a ser el rango en el que se puede mover el error normalizado, lo que hace que sea dificil la convergencia de la relajación.
+        
+        
+        \end{enumerate}
+      
+      %Pregunta 2
+       \item Considere un método iterativo del tipo $v = v + B^{-1}(f - Av)$ aplicado al problema $Au = f$. Use los siguientes pasos para demostrar que la relajación de $Au = f$ es equivalente a relajar $Ae = r$ con estimación inicial 0.
+       
+       \begin{itemize}
+           \item Considere el problema $Au = f$ con una estimación inicial arbitraria $v = v_0$ ¿Cuál es el error y residual asociado con $v_0$?
+            \item Ahora considere la ecuación del residual $Ae = r0 = f - Av_0$. ¿Cuál es el error y residual en la estimación inicial $e_0$?
+            \item Concluya que ambos problemas son equivalentes.
+       \end{itemize}
+       
+       
+       \textbf{Solución:}
+       
+       \begin{itemize}
+                \item Dado $Au = f$ con un vector inicial arbitrario $v = v_0$ se tiene que el error inicial asociado es $e = u - v_0$ y el residuo $r = f - Av_0$
+                \item Con $Ae = r$ tenemos algo similar, donde el error está dado por $\hat{e} = e - e_0$  y el residuo por $\hat{r} = r_0 - Ae_0$. Como $e_0 = 0$ tenemos
+                \begin{center}
+                    $ \hat{e} = e = u - v_0 $ y $\hat{r} = r_0 = f - Av_0$
+                \end{center}
+                \item Como el error inicial y el residuo inicial en ambos casos es el mismo, se puede decir que ambas relajaciones son equivalentes.
+       \end{itemize}
+       
+ 
+%       \begin{itemize}
+%           \item Comenzando con un $v_0$ arbitrario y relajando $Au = f$ con el método iterativo tenemos
+%           $$ v^{k+1} = v^{k} + B^{-1} ( f - A v^k)$$
+%           
+%           Se tiene que $r = f - Av $ despejamos $v$
+%           $$Av = r - f $$
+%           $$ v = A^{-1} (f - r) $$  
+%
+%          Reemplazamos en nuestro método iterativo
+%          
+%          $$ A^{-1} (f - r^{k+1}) =  A^{-1} (f - r^{k}) + B^{-1} (f - Av^k)$$
+%          
+%          Simplificamos algunos términos y se obtiene
+%          
+%          $$ - A^{-1} r^{k+1} =  - A^{-1} r^{k} + B^{-1} (f - Av^k) $$ 
+%
+%        Como $r^k=f - Av^k$ reemplazamos y cambiamos los signos
+%        \begin{equation}
+%            \label{eq:con_a}  A^{-1} r^{k+1} =   A^{-1} r^{k} - B^{-1} r^k 
+%        \end{equation}
+%  
+%        Multiplicando por A a la izquierda obtenemos el residuo en cada iteración.
+%        \begin{center}
+%        \boxed{r^{k+1} =   r^{k} - AB^{-1} r^k }
+%        \end{center}
+%        Desde la ecuación (\ref{eq:con_a}) usando $Ae = r$, $e = A^{-1}r$ obtenemos el error en la iteración.
+%        
+%        \begin{center}
+%            \boxed{e^{k+1} = e^{k} - B^{-1} r^k}
+%        \end{center}
+%            
+%       \end{itemize}
+
+      
+    
+        \item Verifique que $I_h^{2h} w^h_k = cos(\frac{k\pi}{2n})w_k^{2h}$ donde $w_{k,j}^h = sin(\frac{jk\pi}{n}$, $1 \leq k \leq \frac{n}{2}$ e $I_h^{2h}$ es el operador \textit{full weightning}
+        
+        
+        \textbf{Solución:}
+        
+        Por el operador  $I_h^{2h}$ se tiene que:
+        $$I_h^{2h} w_{j,k}^{2h} =\frac{1}{4}\left( w_{2j-1,k}^h + 2  w_{2j,k}^h +  w_{2j+1,k}^h \right) $$
+        
+        Reemplazando los $w_{k,j}^h$
+        
+        $$I_h^{2h} w_{j,k}^{2h} = 
+            \frac{1}{4}\left( 
+                sin \left(\frac{(2j-1)k\pi}{n}\right)
+                + 2 sin \left(\frac{(2j)k\pi}{n} \right)
+                + sin \left(\frac{(2j+1)k\pi}{n} \right)
+                \right)
+        $$
+        
+        Utilizando la identidad trigonométrica $sin(a+b) = sin(a) cos(b) + sin(b) cos (a)$
+        $$I_h^{2h} w_{j,k}^{2h} = 
+            \frac{1}{4}\left( 
+                sin \left(\frac{2jk\pi}{n}\right) cos\left(\frac{k\pi}{n}\right)
+                - sin \left(\frac{k\pi}{n}\right)  \left(cos\frac{2jk\pi}{n} \right)
+                + 2 sin \left(\frac{2jk\pi}{n} \right)
+                + sin \left(\frac{2jk\pi}{n}\right) \left(cos\frac{k\pi}{n} \right)
+                + sin \left(\frac{k\pi}{n}\right) \left(cos\frac{2jk\pi}{n}  \right)
+                \right)
+        $$
+        
+        Como $cos\frac{2jk\pi}{n} = 0$ 
+        
+        $$I_h^{2h} w_{j,k}^{2h} = 
+            \frac{1}{4}\left( 
+                sin \left(\frac{2jk\pi}{n}\right)  \left(cos\frac{k\pi}{n}\right)
+                + 2 sin \left(\frac{2jk\pi}{n}\right)
+                + sin \left(\frac{2jk\pi}{n}\right)  \left(cos\frac{k\pi}{n}\right)
+                \right)
+        $$
+        
+        $$I_h^{2h} w_{j,k}^{2h} = 
+            \frac{1}{4}\left( 
+                2 sin\left(\frac{2jk\pi}{n} cos\frac{k\pi}{n}\right)
+                + 2 sin\left(\frac{2jk\pi}{n}\right)
+            \right)
+        $$
+        
+        Factorizando por $2 \ sin\left(\frac{2jk\pi}{n}\right)$
+        $$I_h^{2h} w_{j,k}^{2h} = 
+            \frac{1}{2} sin\left(\frac{2jk\pi}{n}\right) \left( 
+                cos\left(\frac{k\pi}{n}\right)
+                + 1
+            \right)
+        $$
+
+        Utilizando la identidad trigonométrica $cos^2(a) = \frac{1 + cos(2a)}{2}$ con $a =\frac{k\pi}{2n}$ 
+        
+        $$I_h^{2h} w_{j,k}^{2h} = cos^2 \left(\frac{k \pi}{2n}\right) sin\left(\frac{2jk\pi}{n}\right)$$
+        
+        Como $ sin\left(\frac{2jk\pi}{n}\right) =  sin\left(\frac{2jk\pi}{\frac{n}{2}}\right) = w_{j,k}^{2h}$
+        
+         $$I_h^{2h} w_{j,k}^{2h} = cos^2 \left(\frac{k \pi}{2n}\right) w_{j,k}^{2h}$$
+         
+         Y en general se tiene 
+         
+           $$I_h^{2h} w_{k}^{2h} = cos^2 \left(\frac{k \pi}{2n}\right) w_{k}^{2h} \ \ \ \square$$
+  \end{enumerate}
+  
+
+\end{document}

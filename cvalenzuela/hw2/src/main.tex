@@ -1,0 +1,240 @@
+\documentclass[spanish]{article}
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[colorlinks]{hyperref}
+\usepackage{fourier}
+\usepackage{amssymb, amsmath, tikz}
+\usepackage{listings}
+\usepackage{float}
+\usepackage[top = 2.5cm, bottom = 2cm, left = 2cm, right = 2cm]{geometry}
+\usepackage{color}
+\usepackage{hyperref}
+
+\title{
+  Tarea 2\\ FFT\\
+}
+
+\author{
+  Camilo Valenzuela Carrasco \\ \texttt{camilo.valenzuela@alumnos.usm.cl}
+  \\ 201173030-5
+}
+
+\lstset{
+  language=Python
+}
+
+\date{26 de mayo 2017}
+
+\newcommand{\multlinecomment}[1]{\directlua{-- #1}}
+
+
+\begin{document}
+  \maketitle
+  %\section{Introducción}
+  
+    
+  %\section{Preguntas}
+  
+  
+  %PREGUNTAS
+  
+  \begin{enumerate}
+  
+  \item Estudio de la ortogonalidad discreta de las series de Fourier.Sea 
+  \begin{equation} 
+  \label{eq:serie}
+    I = \displaystyle \sum_{n=0}^{N-1} e^{ikx_n} e^{-ik'x_n} =   \displaystyle \sum_{n=0}^{N-1} e^{ih(k-k')n}
+  \end{equation}
+  
+  Analizaremos dos casos, cuando $h(k-k')$ es múltiplo de $2 \pi$ y cuando no lo es.
+  
+  \begin{itemize}
+      \item Suponiendo $h(k-k') = 2 \pi m , m \in \mathbb{Z}$ reemplazando en~\ref{eq:serie}
+        \begin{equation} 
+        I = \displaystyle \sum_{n=0}^{N-1} e^{2\pi m n} = \displaystyle \sum_{n=0}^{N-1} 1 = N
+      \end{equation}
+      
+      \item Si $h(k-k') \neq 2 \pi m$ sabemos que $e^{ih(k-k')n} \neq 1$ por lo que la sumatoria se puede representar como una serie geometrica con $r = e^{ih(k-k')}$ que converge a
+      
+      \begin{equation}
+          I =\displaystyle \sum_{n=0}^{N-1} e^{ih(k-k')n} = \frac{1 - e^{i h(k-k') N}}{1 - e^{ih(k-k')}}
+      \end{equation}
+      
+      como el dominio de la DFT es $[0, 2\pi]$ se tiene que $h = \frac{2\pi}{N}$ reemplazando tenemos 
+      \begin{equation}
+         I =  \frac{1 - e^{i \frac{2\pi}{N}(k-k') N}}{1 - e^{i\frac{2\pi}{N}(k-k')}}  = \frac{1 - e^{i \frac{2\pi}(k-k')}}{1 - e^{i\frac{2\pi}{N}(k-k')}} =   \frac{0}{1 - e^{i\frac{2\pi}{N}(k-k')}}  = 0
+      \end{equation}
+  \end{itemize}
+  
+  Luego de este análisis podemos ver que cuando 
+  \begin{align}
+      h(k-k') &= \frac{2 \pi}{N} (k -k') = 2 \pi m \\ 
+      \frac{k-k'}{N} &= m \\
+      k - k' = mN
+  \end{align}
+  Como esta expansión es periódica $mN \ \  (mod N) = 0$, por lo que $k - k' = 0$ lo que nos dice que $k = k'$.
+  
+  Como $I$ es distinto de 0 cuando las exponenciales son iguales y vale 0 cuando las exponenciales son distintas, se dice que son bases ortogonales.
+  
+  
+  \item  Sea la convolución discreta 
+    \begin{equation}
+        c_j = \displaystyle \sum_{n=0}^{N-1} f_n g_{j-n} = (f \star g)_j
+    \end{equation}
+    
+    Si aplicamos DFT en ambos lados obtenemos
+    \begin{equation}
+        C_k = \mathcal{F}(c_j) =  \displaystyle \sum_{n=0}^{N-1} \displaystyle \sum_{m=0}^{N-1} f_m g_{n-m} e^{- i k x_n}
+    \end{equation}
+    
+    Con $x_n = hn$ y cambiando el orden de las sumatorias tenemos
+    \begin{equation}
+        C_k =  \displaystyle \sum_{m=0}^{N-1} f_m \displaystyle \sum_{n=0}^{N-1} g_{n-m} e^{- i k hn} 
+    \end{equation}
+    Escribimos la exponencial de la siguiente forma $e^{- i k hn}= e^{- i k h(n-m)}e^{- i k h(m)}$ y las agrupamos una en cada sumatoria
+    \begin{equation}
+        C_k =  \displaystyle \sum_{m=0}^{N-1} f_m e^{- i k h(m)} \displaystyle \underbrace{\sum_{n=0}^{N-1} g_{n-m} e^{- i k h(n-m)}}_{NG_k}
+    \end{equation}
+    Tomando $N G_k$ constantes en relación a la sumatoria tenemos
+     \begin{equation}
+        C_k = NG_k \underbrace{\displaystyle \sum_{m=0}^{N-1} f_m e^{- i k h(m)}}_{F_k}
+    \end{equation}
+    Por lo que llegamos que la transformada de la convolución discreta es de la forma
+    \begin{equation}
+        C_k = NG_k F_k
+    \end{equation}
+    
+    
+    \item La ecuación de Helmholtz en 1D está definida por
+    \begin{equation}
+        -\frac{\partial^2 u}{\partial x^2} + \sigma^2 u = f
+    \end{equation}
+    
+    \begin{enumerate}
+        \item Discretizando la derivada utilizando diferencias centradas tenemos 
+        \begin{equation}
+           \frac{\partial^2 u}{\partial x^2} = \frac{u_{i-1} - 2u_i + u_{i+1}}{h^2}
+        \end{equation}
+        Discretizando la ecuación y reemplazando la derivada tenemos
+        \begin{align}
+            - u_{xx}  + \sigma^2 u &= f\\
+            - (\frac{u_{i-1} - 2u_i + u_{i+1}}{h^2}) + \sigma^2 u_i &= f_i \\
+            - (u_{i-1} - 2u_i + u_{i+1}) + \sigma^2h^2 u_i &= f_i h^2 \\
+            - u_{i-1} + (2+\sigma^2h^2) u_i - u_{i+1}  &= f_i h^2 
+        \end{align}
+        Que se puede expersar en forma matricial con una matriz tridiagonal con $(2+\sigma^2h^2)$ en la diagonal principal y $-1$ en las diagonales contiguas. 
+        
+        \item Dada la discretización obtenida en (a)
+        \begin{equation}
+             - u_{i-1} + (2+\sigma^2h^2) u_i - u_{i+1} = f_i h^2
+        \end{equation}
+        Podemos decir que $ \hat{u}_k$ es la variable $u$ luego de ser convertida al espacio de fourier por lo que 
+        \begin{equation}
+            \hat{u}_k = h \sum_{j = 1}^{N} e^{-ikhn} u_j
+        \end{equation}
+        Utilizando DFT en la ecuación discretizada obtenemos
+        \begin{equation}
+            - \hat{u}_{k+1} + (2+\sigma^2h^2) \hat{u}_k - \hat{u}_{k+1} = h^2\hat{f}_k
+        \end{equation}
+        
+        Utilizando la propiedad de traslación de la Transformada de Fourier $\hat{u}_{k\pm1} = e^{\pm ikh} \hat{u}_k$ podemos reescribir la ecuación de la forma
+        \begin{equation}
+            - e^{ikh}\hat{u}_k + (2 + \sigma^2h^2) \hat{u}_k - e^{-ikh} \hat{u}_k = \hat{f}_k h^2
+        \end{equation}
+        Despejando $\hat{u}_k$
+        \begin{equation}
+           (2 + \sigma^2 h^2 - \underbrace{(e^{ik} + e^{-ik})}_{2 cos(kh)}) = \hat{f}_k h^2
+        \end{equation}
+        Queremos los valores propios de esta discretización por lo que sabemos que un operador lineal aplicado a una funcion es de la forma
+        \begin{equation}
+            L \hat{u} = \lambda \hat{u}
+        \end{equation}
+        En este caso tenemos que $L =  (2 + \sigma^2 h^2 -2 cos(kh))$ por lo que 
+        \begin{equation}
+            \lambda_k =  (2 + \sigma^2 h^2 -2 cos(kh))
+        \end{equation}
+        Como $h = \frac{2\pi}{N}$ podemos escribir los valores propios de la forma 
+        \begin{align}
+            \lambda_k &=  2 + \sigma^2 h^2 -2 cos\left(\frac{2\pi k}{N}\right) \\
+             &= 2\left( 1 - cos\left(2 \frac{k\pi}{N} \right) \right) + \sigma^2 h^2 \\
+             &= 2 \left( 1 - \left( 1 - 2 sen^2\left( \frac{k\pi}{N} \right) \right) \right) + \sigma^2 h^2 \\
+             &= 4 sen^2\left( \frac{k \pi}{N} \right) + \sigma^2 h^2
+        \end{align}
+    \end{enumerate}
+    
+    \item Dado un problema con condiciones de contorno periódicas en 2 dimensiones de la forma 
+    \begin{equation}
+        \underbrace{a (u_{m-1,n} + u_{m+1,n})}_{(1)} + \underbrace{b (u_{m,n-1} + u_{m,n+1})}_{(2)} + \underbrace{c u_{m,n}}_{(3)} = f_{m,n}
+    \end{equation}
+    Sea  $U_{j,k} = DFT(u_{m,n})$ y $F_{j,k} = DFT(f_{m,n})$, al aplicar DFT al problema obtenemos
+    \begin{align}
+        (1) a \left(e^{-ihmj} U_{j,k}  + e^{ihmj} U_{j,k}\right)  &= a U_{j,k} \ \ 2 cos \left( h Mj \right)\\
+        & = a U_{j,k} \left(1 - 2 sin^2\left( \frac{\pi j}{M}  \right)\right) \\
+        (2) b \left(e^{-ihnk} U_{j,k}  + e^{ihnk} U_{j,k}  \right) &= b U_{j,k} \ \ 2 cos \left( h N j \right)\\
+        & =  b U_{j,k} \left(1 - 2 sin^2\left( \frac{\pi j}{N}  \right)\right) \\
+        (3) c U_{j,k} & 
+    \end{align}
+    
+    Sumando $(1),(2),(3)$ tenemos
+    \begin{equation}
+        (1)+(2)+(3) = \left(  a - 2a sen^2\left( \frac{\pi k}{M} \right) +  b - 2b sen^2\left( \frac{\pi j}{N} \right) + c \right) U_{j,k}  = F_{j,k}
+    \end{equation}
+    \begin{equation}
+         U_{j,k}  = \frac{F_{j,k}}{\left(  a - 2a sen^2\left( \frac{\pi k}{M} \right) +  b - 2b sen^2\left( \frac{\pi j}{N} \right) + c \right)}
+    \end{equation}
+    
+    \item Tomando el problema anterior y en vez de utilizar una DFT multidimensional se puede realizar una DFT unidimensional y luego resolver el sistema de ecuaciones para obtener los coeficientes de la otra dimension.
+    
+    \begin{enumerate}
+        \item Utilizando DFT unidimensional sobre $x$ en la ecuacion obtenemos
+        \begin{equation}
+            U_{j,n} \left(a - 2 a sen\left( \frac{\pi j}{M} \right)  \right) + b U_{j,n-1} + b U_{j,n+1} + c U_{j,n} = F_{j,n}
+         \end{equation}
+         Ordenando la ecuacion obtenemos
+         \begin{equation}
+             b U_{j,n-1} + \underbrace{\left(a - 2 a sen\left( \frac{\pi j}{M} \right) +c  \right)}_{\gamma}  U_{j,n} + b U_{j,n+1} = F_{j,n} 
+         \end{equation}
+        Esta ecuación se puede escribir de forma matricial donde la matriz principal es $\left(a - 2 a sen\left( \frac{\pi j}{M} \right) +c  \right)$ y las diagonales contiguas tienen valor b.
+        
+        \begin{equation}
+            \underbrace{\begin{pmatrix}
+                \gamma &b & 0 & 0 &\dots & 0\\
+                b & \gamma & b & 0 &\dots & 0 \\
+                0 & b & \gamma & b & \dots & 0\\
+                \vdots & \vdots & \vdots &\vdots & \ddots & \vdots \\
+                0 &\dots  &\dots  &\dots & \dots & b 
+            \end{pmatrix}}_{A}
+            \underbrace{\begin{pmatrix}
+               U_{j,1}\\
+               U_{j,2}\\
+               U_{j,3}\\
+               \vdots \\
+               U_{j,N}
+            \end{pmatrix}}_{u}
+            = 
+            \underbrace{\begin{pmatrix}
+               F_{j,1}\\
+               F_{j,2}\\
+               F_{j,3}\\
+               \vdots \\
+               F_{j,N}
+            \end{pmatrix}}_{f}   
+        \end{equation}
+        
+        \item Sabemos que el costo computacional de la FFT $O(N log(N))$ podemos comparar los dos algoritmos (Utilizar FFT multidimensional y FFT en una dirección)
+        
+        Para la FFT multidimensional tenemos que realizar FFT sobre todos los $f_{m,n}$, calcular los $F_{m,n}$ y luego utilizar FFT inversa para obtener la solución. Por lo que el costo total es aproximadamente 
+        $$ 2 MN log(MN)$$
+        
+        Para el caso de utilizar la FFT en una dimensión y luego resolver el sistema de ecuaciones tridiagonal, por lo que tenemos que calcular los $F_{j,n}$ para todos los $j$ y luego calcular la FFT inversa para cada $U_{j,k}$
+        
+        $$ M\cdot N log(N)  + 3 M + MNlog(N)$$
+        
+        Este algoritmo va a ser más rápido con pocos puntos, pero cuando aumente la cantidad de puntos va a ser mejor utilizar la FFT multidimensional.
+        
+    \end{enumerate}
+    
+  \end{enumerate}
+  
+
+\end{document}
